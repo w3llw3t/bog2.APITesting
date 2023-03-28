@@ -1,2 +1,2 @@
-в response в методах GET /api/books/<book_id> и POST /api/books возвращается не массив (как должно).
+в response в методах GET /api/books/<book_id>, POST /api/books PUT  /api/books<book_id> возвращается не массив (как должно).
 Проблема заключается в том, что пропущена квардратная скобка.
