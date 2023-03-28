@@ -1,51 +1,57 @@
-import io.restassured.RestAssured;
+import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import pojos.Book;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.core.IsEqual.equalTo;
+
 public class NegativeTests extends BaseTest{
+    @DataProvider
+    public Object[][] bookData() {
+        return new Object[][]{
+                {"", "New Book Author", 2000, true},
+                {"New Book Name",22 ,22, false }
+        };
+    }
 
-    //VALID VALUES ----------
-    @Test
+    @Test(dataProvider = "bookData")
     //Добавление новой книги в библиотеку (негативный сценарий)
-    void createBook() {
-        Book book2 = new Book();
-        book2.setAuthor("author");
-        book2.setYear(2000);
-        RestAssured
-                .given()
-                .when()
-                .body(book2)
-                .post("/api/books")
-                .then()
-                .statusCode(400);
-    }
-    @Test
-        //изменение информации о книге (негативный сценарий)
-    void changeBookInfo() {
-        Book book2 = new Book();
-        book2.setAuthor("Author");
-        book2.setYear(2001);
-        RestAssured
-                .given()
-                .when()
-                .body(book2)
-                .put("/api/books/2")
-                .then()
-                .statusCode(400);
-    }
+    public void createBookTestNegative(String name, String author, int year, boolean t) {
+        // todo: создать книгу и проверить, что она находится в системе
+        Book book = createBook(buildNewBook(name, author, year, t));
+        Book actual = getBookById(book.getId());
 
-    //INVALID VALUES ----------
-    @Test
-    void createBookInvalid() {
-        Book book = new Book();
-        book.setName("BLA");
-        book.setYear(2142);
-        RestAssured
-                .given()
+        //Проверка, что книга действительно была добавлена
+        Assert.assertEquals(actual.getName(), book.getName());
+    }
+    //на получение кгиги по её id
+    protected Book getBookById(int id) {
+        return given()
                 .when()
-                .body(book)
-                .post("/api/books")
+                .get("/api/books/" + id)
                 .then()
-                .statusCode(201);
+                .statusCode(200)
+                .extract().body().as(Book.class);
+    }
+    @DataProvider(name = "invalidBookIds")
+    public Object[][] getInvalidBookIds() {
+        return new Object[][]{
+                {"100"},
+                {"abc123"},
+                {"-1"}
+        };
+    }
+    //получение информации о несуществующей книге по ее ID
+    @Test(dataProvider = "invalidBookIds")
+    public void getBookIdNegative(String bookId) {
+        given()
+                .pathParam("bookId", bookId)
+                .when()
+                .get("/api/books/{bookId}")
+                .then()
+                .statusCode(404)
+                .assertThat()
+                .body(equalTo(""));
     }
 }
