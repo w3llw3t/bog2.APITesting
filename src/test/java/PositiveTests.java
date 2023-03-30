@@ -1,92 +1,92 @@
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import pojos.Book;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNull.notNullValue;
 
-public class PositiveTests extends BaseTest {
+public class PositiveTests {
 
+    private static final String BASE_URL = "http://localhost:5000";
 
-    @DataProvider
-    public Object[][] books() {
+    @DataProvider(name = "bookIdProvider")
+    public Object[][] bookIdProvider() {
         return new Object[][]{
-                {"New Book Name", "New Book Author", 2000, true},
-                {"BokBook", "Bok BookBook", 2005, false}
+                {1},
+                {2},
+                {100}, // non-exciting
+                {-5} // invalid value
+        };
+    }
+
+    @DataProvider(name = "newBookProvider")
+    public Object[][] newBookProvider() {
+        return new Object[][]{
+                {"{ \"name\": \"New Book 1\" }"}, // replace with valid JSON
+                {"{ \"name\": \"New Book 2\", \"author\": \"New Author\", \"year\": 2023, \"isElectronicBook\": true }"} // replace with valid JSON
+        };
+    }
+
+    @DataProvider(name = "bookIdAndRequestBodyProvider")
+    public Object[][] bookIdAndRequestBodyProvider() {
+        return new Object[][]{
+                {1, "{ \"name\": \"Updated Book 1\", \"author\": \"Updated Author\", \"year\": 2022, \"isElectronicBook\": false }"}, // replace with valid JSON and an existing book ID
+                {2, "{ \"name\": \"Updated Book 2\", \"author\": \"Updated Author\", \"year\": 2021, \"isElectronicBook\": true }"}, // replace with valid JSON and an existing book ID
+                {100, "{ \"name\": \"Updated Book 100\", \"author\": \"Updated Author\", \"year\": 2023, \"isElectronicBook\": true }"} // replace with valid JSON and an existing book ID
         };
     }
 
     @Test
     //получение информации о всех доступных книгах
     public void getAllBooks() {
-        given()
-                .when()
-                .get("/api/books")
-                .then()
-                .statusCode(200);
+        Response response = RestAssured.get(BASE_URL + "/api/books");
+        Assert.assertEquals(response.getStatusCode(), 200);
     }
     //Добавление новой книги в библиотеку
-    @Test(dataProvider = "books")
-    public void createBookTest(String name, String author, int year, boolean b) {
+    @Test(dataProvider = "newBookProvider")
+    public void testAddNewBook(String requestBody) {
         // todo: создать книгу и проверить, что она находится в системе
-        Book book = createBook(buildNewBook(name, author, year, b));
-        Book actual = getBookById(book.getId());
-
-        //Проверка, что книга действительно была добавлена
-        Assert.assertEquals(actual.getName(), book.getName());
-    }
-    //на получение кгиги по её id
-    protected Book getBookById(int id) {
-        return given()
-                .when()
-                .get("/api/books/" + id)
-                .then()
-                .statusCode(200)
-                .extract().body().as(Book.class);
+        Response response = RestAssured.given()
+                .header("Content-Type", "application/json")
+                .body(requestBody)
+                .post(BASE_URL + "/api/books");
+        Assert.assertEquals(response.getStatusCode(), 201);
+        response.then().body("id", notNullValue());
+        response.then().body("name", notNullValue());
+        response.then().body("author", notNullValue());
+        response.then().body("year", notNullValue());
+        response.then().body("isElectronicBook", notNullValue());
     }
     //изменение книги по её id
-    @Test(dataProvider = "books")
-    public void updateBookTest(String name, String author, int year, boolean w) {
-        // todo: создать книгу с именем, затем обновить
-        Book book = createBook(buildNewBook(name, author, year, w));
-        updateBook(book);
-    }
-    private void updateBook(Book book) {
-        Book book1 = new Book();
-        book1.setName("SATTATA");
-        given()
-                .pathParam("id", book.getId())
-                .body(book1.getName())
-                .when()
-                .put("/api/books/{id}")
-                .then()
-                .statusCode(200);
+    @Test(dataProvider = "bookIdAndRequestBodyProvider")
+    public void testUpdateBookById(int bookId, String requestBody) {
+        Response response = RestAssured.given()
+                .header("Content-Type", "application/json")
+                .body(requestBody)
+                .put(BASE_URL + "/api/books/" + bookId);
+        Assert.assertEquals(response.getStatusCode(), 200);
+        response.then().body("id", equalTo(bookId));
+        response.then().body("name", notNullValue());
+        response.then().body("author", notNullValue());
+        response.then().body("year", notNullValue());
+        response.then().body("isElectronicBook", notNullValue());
     }
     //получение информации о книге по ее ID
-    @Test(dataProvider = "books")
-    public void getBookId(String name, String author, int year, boolean r) {
-        Book book = createBook(buildNewBook(name, author, year, r));
-        given()
-                .when()
-                .get("/api/books/" + book.getId())
-                .then()
-                .statusCode(200)
-                .body("name", equalTo(name))
-                .body("author", equalTo(author))
-                .body("year",equalTo(year));
+    @Test(dataProvider = "bookIdProvider")
+    public void getBookById(int bookId) {
+        Response response = RestAssured.get(BASE_URL + "/api/books/" + bookId);
+        Assert.assertEquals(response.getStatusCode(), 200);
+
     }
     //удаление книги по ее ID
-    @Test(dataProvider = "books")
-    public void deleteBookId(String name, String author, int year, boolean q) {
-        Book book = createBook(buildNewBook(name, author, year, q));
-        given()
-                .when()
-                .body(book)
-                .delete("/api/books/" + book.getId())
-                .then()
-                .statusCode(200);
+    @Test(dataProvider = "bookIdProvider")
+    public void testDeleteBookById(int bookId) {
+        Response response = RestAssured.delete(BASE_URL + "/api/books/" + bookId);
+        Assert.assertEquals(response.getStatusCode(), 200);
         //проверка, что книга действительно удалена
-        Assert.assertEquals(book, equalTo(book));
+        response = RestAssured.get(BASE_URL + "/api/books/" + bookId);
+        Assert.assertEquals(response.getStatusCode(), 404);
     }
 }

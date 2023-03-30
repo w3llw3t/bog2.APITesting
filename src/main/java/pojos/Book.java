@@ -13,16 +13,6 @@ public class Book {
     private Integer year;
     @SerializedName("isElectronicBook")
     private boolean isElectronicBook;
-    @SerializedName("id")
-    private int id;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public Book(){
     }
@@ -63,7 +53,7 @@ public class Book {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Book book = (Book) o;
-        return isElectronicBook == book.isElectronicBook && Objects.equals(name, book.name) && Objects.equals(author, book.author) && Objects.equals(year, book.year) && Objects.equals(id, book.id);
+        return isElectronicBook == book.isElectronicBook && Objects.equals(name, book.name) && Objects.equals(author, book.author) && Objects.equals(year, book.year);
     }
 
     @Override
