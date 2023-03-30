@@ -24,17 +24,18 @@ public class PositiveTests {
     @DataProvider(name = "newBookProvider")
     public Object[][] newBookProvider() {
         return new Object[][]{
-                {"{ \"name\": \"New Book 1\" }"}, // replace with valid JSON
-                {"{ \"name\": \"New Book 2\", \"author\": \"New Author\", \"year\": 2023, \"isElectronicBook\": true }"} // replace with valid JSON
+                {"{ \"name\": \"New Book 1\" }"}, //valid
+                {"{ \"name\": \"New Book 2\", \"author\": \"New Author\", \"year\": 2023, \"isElectronicBook\": true }"}, // valid
+                {"{ \"author\": \"New Author\", \"year\": 2023 }"}, // invalid
         };
     }
 
     @DataProvider(name = "bookIdAndRequestBodyProvider")
     public Object[][] bookIdAndRequestBodyProvider() {
         return new Object[][]{
-                {1, "{ \"name\": \"Updated Book 1\", \"author\": \"Updated Author\", \"year\": 2022, \"isElectronicBook\": false }"}, // replace with valid JSON and an existing book ID
-                {2, "{ \"name\": \"Updated Book 2\", \"author\": \"Updated Author\", \"year\": 2021, \"isElectronicBook\": true }"}, // replace with valid JSON and an existing book ID
-                {100, "{ \"name\": \"Updated Book 100\", \"author\": \"Updated Author\", \"year\": 2023, \"isElectronicBook\": true }"} // replace with valid JSON and an existing book ID
+                {1, "{ \"name\": \"Updated Book 1\", \"author\": \"Updated Author\", \"year\": 2022, \"isElectronicBook\": false }"}, // valid
+                {2, "{ \"name\": \"Updated Book 2\", \"author\": \"Updated Author\", \"year\": 2021, \"isElectronicBook\": true }"}, // valid
+                {100, "{ \"name\": \"Updated Book 100\", \"author\": \"Updated Author\", \"year\": 2023, \"isElectronicBook\": true }"} // invalid
         };
     }
 
