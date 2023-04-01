@@ -14,6 +14,10 @@ public class Book {
     @SerializedName("isElectronicBook")
     private boolean isElectronicBook;
 
+    public void setElectronicBook(boolean electronicBook) {
+        isElectronicBook = electronicBook;
+    }
+
     public boolean getIsElectronicBook() {
         return isElectronicBook;
     }

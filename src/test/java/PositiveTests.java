@@ -34,12 +34,11 @@ public class PositiveTests {
     @DataProvider(name = "bookIdAndRequestBodyProvider")
     public Object[][] bookIdAndRequestBodyProvider() {
         return new Object[][]{
-                {1, "{ \"name\": \"Updated Book 1\", \"author\": \"Updated Author\", \"year\": 2022, \"isElectronicBook\": false }","Updated Book 1"}, // valid
-                {2, "{ \"name\": \"Updated Book 2\", \"author\": \"Updated Author\", \"year\": 2021, \"isElectronicBook\": true }","Updated Book 2"}, // valid
-                {100, "{ \"name\": \"Updated Book 100\", \"author\": \"Updated Author\", \"year\": 2023, \"isElectronicBook\": true }",""} // invalid
+                {1, "{ \"name\": \"Updated Book 1\", \"author\": \"Updated Author\", \"year\": 2022, \"isElectronicBook\": false }"}, // valid
+                {2, "{ \"name\": \"Updated Book 2\", \"author\": \"Updated Author\", \"year\": 2021, \"isElectronicBook\": true }"}, // valid
+                {100, "{ \"name\": \"Updated Book 100\", \"author\": \"Updated Author\", \"year\": 2023, \"isElectronicBook\": true }"} // invalid
         };
     }
-
     @Test
     //получение информации о всех доступных книгах
     public void getAllBooks() {
@@ -63,7 +62,6 @@ public class PositiveTests {
 
         // Получаем информацию о добавленной книге из ответа на POST-запрос
         Book newBook = response.as(Book.class);
-
         // Проверяем, что книга действительно добавлена
         response.then().assertThat().body("name", equalTo(newBook.getName()));
         response.then().assertThat().body("author", equalTo(newBook.getAuthor()));
@@ -73,7 +71,7 @@ public class PositiveTests {
 
     //изменение книги по её id
     @Test(dataProvider = "bookIdAndRequestBodyProvider")
-    public void testUpdateBookById(int bookId, String requestBody, String updatedBookName) {
+    public void testUpdateBookById(int bookId, String requestBody) {
         Response response = given()
                 .header("Content-Type", "application/json")
                 .body(requestBody)
@@ -93,12 +91,12 @@ public class PositiveTests {
     @Test(dataProvider = "bookIdProvider")
     public void getBookById(int bookId) {
         Response response = given()
-                .get(BASE_URL + "/api/books" + bookId);
+                .get(BASE_URL + "/api/books/" + bookId);
         response.then()
                 .log().all() // логирование ответа
                 .assertThat()
                 .statusCode(200);
-        // Получаем информацию о добавленной книге из ответа на POST-запрос
+        // Получаем информацию о добавленной книге из ответа
         Book bookIds = response.as(Book.class);
 
         //проверка, что книга актуальности информации о книге
