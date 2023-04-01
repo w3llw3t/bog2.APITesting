@@ -14,6 +14,10 @@ public class Book {
     @SerializedName("isElectronicBook")
     private boolean isElectronicBook;
 
+    public boolean getIsElectronicBook() {
+        return isElectronicBook;
+    }
+
     public Book(){
     }
 
@@ -39,12 +43,6 @@ public class Book {
 
     public void setYear(Integer year) {
         this.year = year;
-    }
-
-    public void isElectronicBook(boolean b) {
-    }
-    public void setElectronicBook(boolean electronicBook) {
-        isElectronicBook = electronicBook;
     }
 
 
