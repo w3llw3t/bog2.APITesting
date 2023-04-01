@@ -4,7 +4,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsIterableContaining.hasItem;
 import static org.hamcrest.core.IsNull.notNullValue;
 
 public class PositiveTests {
@@ -24,9 +26,9 @@ public class PositiveTests {
     @DataProvider(name = "newBookProvider")
     public Object[][] newBookProvider() {
         return new Object[][]{
-                {"{ \"name\": \"New Book 1\" }"}, //valid
-                {"{ \"name\": \"New Book 2\", \"author\": \"New Author\", \"year\": 2023, \"isElectronicBook\": true }"}, // valid
-                {"{ \"author\": \"New Author\", \"year\": 2023 }"}, // invalid
+                {"{ \"name\": \"New Book 1\" }", "New Book 1"}, //valid
+                {"{ \"name\": \"New Book 2\", \"author\": \"New Author\", \"year\": 2023, \"isElectronicBook\": true }","New Book 2"}, // valid
+                {"{ \"author\": \"New Author\", \"year\": 2023 }", ""}, // invalid
         };
     }
 
@@ -47,9 +49,9 @@ public class PositiveTests {
     }
     //Добавление новой книги в библиотеку
     @Test(dataProvider = "newBookProvider")
-    public void testAddNewBook(String requestBody) {
+    public void testAddNewBook(String requestBody, String expectedBookName) {
         // todo: создать книгу и проверить, что она находится в системе
-        Response response = RestAssured.given()
+        Response response = given()
                 .header("Content-Type", "application/json")
                 .body(requestBody)
                 .post(BASE_URL + "/api/books");
@@ -59,11 +61,16 @@ public class PositiveTests {
         response.then().body("author", notNullValue());
         response.then().body("year", notNullValue());
         response.then().body("isElectronicBook", notNullValue());
+
+        Response allBooksResponse = RestAssured.get(BASE_URL + "/api/books");
+        if (!expectedBookName.isEmpty()) {
+            allBooksResponse.then().body("name", hasItem(expectedBookName));
+        }
     }
     //изменение книги по её id
     @Test(dataProvider = "bookIdAndRequestBodyProvider")
     public void testUpdateBookById(int bookId, String requestBody) {
-        Response response = RestAssured.given()
+        Response response = given()
                 .header("Content-Type", "application/json")
                 .body(requestBody)
                 .put(BASE_URL + "/api/books/" + bookId);
